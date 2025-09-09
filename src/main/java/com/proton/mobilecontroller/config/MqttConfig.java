@@ -2,25 +2,41 @@ package com.proton.mobilecontroller.config;
 
 import org.eclipse.paho.client.mqttv3.MqttClient;
 import org.eclipse.paho.client.mqttv3.MqttConnectOptions;
+import org.eclipse.paho.client.mqttv3.MqttException;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;
 
 @Configuration
 public class MqttConfig {
-    private static final String BROKER_URL = "tcp://localhost:1883";
-    private static final String TOPIC = "proton/MPU/+/+";
+
+    @Value("${mqtt.broker.url}")
+    private String brokerUrl;
+
+    @Value("${mqtt.broker.username}")
+    private String username;
+
+    @Value("${mqtt.broker.password}")
+    private String password;
+
+    @Value("${MQTT_TOPIC}")
+    private String topic;
 
     @Bean
-    public MqttClient mqttClient() throws Exception {
-        MqttClient client = new MqttClient(BROKER_URL, MqttClient.generateClientId());
+    public MqttClient mqttClient() throws MqttException {
+        MqttClient client = new MqttClient(brokerUrl, MqttClient.generateClientId());
         MqttConnectOptions options = new MqttConnectOptions();
         options.setAutomaticReconnect(true);
-        System.out.println("Attempting to connect to MQTT broker: " + BROKER_URL);
+        options.setCleanSession(true);
+
+        options.setUserName(username);
+        options.setPassword(password.toCharArray());
+
+        System.out.println("Attempting to connect to MQTT broker: " + brokerUrl);
         client.connect(options);
         System.out.println("Connected to MQTT broker");
-        client.subscribe(TOPIC, 0, (topic, msg) -> {
-            System.out.println("Subscribed to topic: " + TOPIC);
-        });
+
+        client.subscribe(topic, 0);
         return client;
     }
 }

@@ -18,7 +18,9 @@ public class ParameterController {
 
     @GetMapping("/{deviceId}")
     public ResponseEntity<Parameters> getParameters(@PathVariable String deviceId) {
-        Parameters parameters = parameterService.getParameters(deviceId);
+        // Remove "PR:" prefix if present for database lookup
+        String dbDeviceId = deviceId.startsWith("PR:") ? deviceId.substring(3) : deviceId;
+        Parameters parameters = parameterService.getParameters(dbDeviceId);
         if (parameters != null) {
             return ResponseEntity.ok(parameters);
         }
